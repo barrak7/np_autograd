@@ -80,3 +80,22 @@ class np_grad(ndarray):
 
         out._backward = _backward
         return out
+
+    def exp(self):
+        """
+            Applies the natural exponential function to self.
+            It calls numpy's exp function.
+
+            Returns:
+                out: ndarray
+                    The output matrix with the exp of self.
+        """
+        out = np.exp(self)
+        out = np_grad(out, self, 'exp')
+
+        def _backward(out_grad):
+            self._grad += np.exp(self)
+        
+        out._backward = _backward
+
+        return out
