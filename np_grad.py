@@ -61,3 +61,22 @@ class np_grad(ndarray):
         
         out._backward = _backward
         return out
+
+    def log(self):
+        """
+            Applies the natural log to each element of the Matrix.
+            It calls numpy's log function.
+
+            Returns:
+                out: ndarray
+                    A new instance of np_grad with the natural log of self.
+        """
+        out = np.log(self)
+
+        out = np_grad(out, self, 'ln')
+
+        def _backward(out_grad):
+            self._grad = out_grad * 1 / self
+
+        out._backward = _backward
+        return out
