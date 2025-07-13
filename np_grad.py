@@ -76,7 +76,7 @@ class np_grad(ndarray):
         out = np_grad(out, self, 'ln')
 
         def _backward(out_grad):
-            self._grad = out_grad * 1 / self
+            self._grad += out_grad * 1 / self
 
         out._backward = _backward
         return out
