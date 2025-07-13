@@ -9,14 +9,14 @@ b = np_grad(np.random.randint(0,9,(2,5)))
 a_t = torch.tensor(a, requires_grad=True)
 b_t = torch.tensor(b, requires_grad=True)
 
-out = a.log()
+out = a.exp()
 
 out._backward(np.ones_like(out))
 
 print(a._grad)
 print(b._grad)
 
-out = torch.log(a_t)
+out = torch.exp(a_t)
 
 out.backward(torch.ones_like(out))
 
