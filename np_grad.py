@@ -77,7 +77,7 @@ class np_grad(ndarray):
         """
         out = np.log(self + self._eps)
 
-        out = np_grad(out, self, 'ln')
+        out = np_grad(out, (self,), 'ln')
 
         def _backward(out_grad):
             self._grad += out_grad * 1 / self
@@ -95,7 +95,7 @@ class np_grad(ndarray):
                     The output matrix with the exp of self.
         """
         out = np.exp(self)
-        out = np_grad(out, self, 'exp')
+        out = np_grad(out, (self,), 'exp')
 
         def _backward(out_grad):
             self._grad += np.exp(self)
