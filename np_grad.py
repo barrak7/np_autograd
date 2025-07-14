@@ -34,12 +34,16 @@ class np_grad(ndarray):
             _backward: Callable[[out_grad], None]
                 default: None
                 The _backward callable that performs the chain rule of the output gradient against _children.
+            _eps: float
+                default: 1-e7
+                Epsilon, a very small value to add to operations that don't work on 0.
         """
         self[:] = np.array(value, dtype=np.float32)
         self._children = _children
         self._op = _op
         self._backward = lambda: None
         self._grad = np.zeros_like(self)
+        self._eps = 1e-7
 
     def __matmul__(self, other):
         """
@@ -96,6 +100,26 @@ class np_grad(ndarray):
         def _backward(out_grad):
             self._grad += np.exp(self)
         
+        out._backward = _backward
+
+        return out
+
+    def __pow__(self, other):
+        """
+            Raises self to the power of other.
+            It calls ndarray.__pow__(other).
+
+            Returns:
+                out: ndarray
+                    Self raised to the power of other.
+        """
+        out = super(np_grad, self).__pow__(other)
+        out = np_grad(out, (self, other), '**')
+
+        def _backward(out_grad):
+            self._grad += out_grad * other * (self ** (other - 1))
+            other._grad += np.sum(out_grad * (self ** other) * np.log(self))
+
         out._backward = _backward
 
         return out
