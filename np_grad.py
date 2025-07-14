@@ -123,3 +123,23 @@ class np_grad(ndarray):
         out._backward = _backward
 
         return out
+
+    def __mul__(self, other):
+        """
+            Multiplies self by other.
+            It calls ndarray.__mul__.
+
+            Returns:
+                out: ndarray
+                    Result of the multiplcation.
+        """
+        out = super(np_grad, self).__mul__(other)
+        out = np_grad(out, (self, other), '*')
+
+        def _backward(out_grad):
+            self._grad += out_grad * other if self.shape != (1,) else np.sum(out_grad * other)
+            other._grad += out_grad * self if other.shape != (1,) else np.sum(out_grad * self)
+
+        out._backward = _backward
+
+        return out
