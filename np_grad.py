@@ -75,7 +75,7 @@ class np_grad(ndarray):
                 out: ndarray
                     A new instance of np_grad with the natural log of self.
         """
-        out = np.log(self)
+        out = np.log(self + self._eps)
 
         out = np_grad(out, self, 'ln')
 
@@ -118,7 +118,7 @@ class np_grad(ndarray):
 
         def _backward(out_grad):
             self._grad += out_grad * other * (self ** (other - 1))
-            other._grad += np.sum(out_grad * (self ** other) * np.log(self))
+            other._grad += np.sum(out_grad * (self ** other) * self.log())
 
         out._backward = _backward
 
