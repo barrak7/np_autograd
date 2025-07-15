@@ -143,3 +143,23 @@ class np_grad(ndarray):
         out._backward = _backward
 
         return out
+
+    def __add__(self, other):
+        """
+            Implements the addition operator.
+            Calls ndarray.__add__.
+
+            Returns:
+                out: ndarray
+                    The result of the addition.
+        """
+        out = super(np_grad, self).__add__(other)
+        out = np_grad(out, (self, other), '+')
+
+        def _backward(out_grad):
+            self._grad += out_grad if self.shape != (1,) else np.sum(out_grad)
+            other._grad += out_grad if other.shape != (1,) else np.sum(out_grad)
+
+        out._backward = _backward
+
+        return out

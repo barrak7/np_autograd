@@ -11,16 +11,16 @@ a_t = torch.tensor(a, requires_grad=True)
 b_t = torch.tensor(b, requires_grad=True)
 c_t = torch.tensor(c, requires_grad=True)
 
-out = a * b
+out = a + c
 
 out._backward(np.ones_like(out))
 
 print(a._grad)
-print(b._grad)
+print(c._grad)
 
-out = a_t * b_t
+out = a_t + c_t
 
 out.backward(torch.ones_like(out))
 
 print(a_t.grad)
-print(b_t.grad)
+print(c_t.grad)
