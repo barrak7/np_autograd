@@ -163,3 +163,22 @@ class np_grad(ndarray):
         out._backward = _backward
 
         return out
+
+    def __neg__(self):
+        """
+            Negates self.
+            Calls ndarray.__neg__()
+
+            Returns:
+                out: ndarray
+                    Negated self.
+        """
+        out = super(np_grad, self).__neg__()
+        out = np_grad(out, (self,), '-')
+
+        def _backward(out_grad):
+            self._grad += -out_grad
+
+        out._backward = _backward
+
+        return out
