@@ -182,3 +182,23 @@ class np_grad(ndarray):
         out._backward = _backward
 
         return out
+
+    def __sub__(self, other):
+        """
+            Implements subtraction.
+            Calls ndarray.__sub__.
+
+            Returns:
+                out: ndarray
+                    Result of __add__ call.
+        """
+        out = super(np_grad, self).__sub__(other)
+        out = np_grad(out, (self, other), '-')
+
+        def _backward(out_grad):
+            self._grad += out_grad if self.shape != (1,) else np.sum(out_grad)
+            other._grad += -out_grad if other.shape != (1,) else np.sum(-out_grad)
+
+        out._backward = _backward
+
+        return out
