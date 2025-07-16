@@ -202,3 +202,23 @@ class np_grad(ndarray):
         out._backward = _backward
 
         return out
+
+    def __truediv__(self, other):
+        """
+            Implements division.
+            Calls ndarray.__div__.
+            Adds epsilon to other to avoid division by zero.
+
+            Returns:
+                out: ndarray
+                    The result of the division.
+        """
+        out = super(np_grad, self).__truediv__(other + other._eps)
+        out = np_grad(out, (self, other), '/')
+
+        def _backward(out_grad):
+            self._grad += out_grad / other if self.shape != (1,) else np.sum(out_grad / other)
+            other._grad += out_grad * (-self) / (other ** 2) if other.shape != (1,) else np.sum(out_grad * (-self) / (other ** 2))
+
+        out._backward = _backward
+        return out
