@@ -41,7 +41,7 @@ class np_grad(ndarray):
         self[:] = np.array(value, dtype=np.float32)
         self._children = _children
         self._op = _op
-        self._backward = lambda: None
+        self._backward = lambda g: None
         self._grad = np.zeros_like(self)
         self._eps = 1e-7
 
