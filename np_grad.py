@@ -177,7 +177,7 @@ class np_grad(ndarray):
         out = np_grad(out, (self,), '-')
 
         def _backward(out_grad):
-            self._grad += -out_grad
+            self._grad -= out_grad
 
         out._backward = _backward
 
