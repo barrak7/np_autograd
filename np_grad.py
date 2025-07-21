@@ -222,16 +222,3 @@ class np_grad(ndarray):
 
         out._backward = _backward
         return out
-
-    def __hash__(self):
-        """
-            Implementation of hashing function to use in sets.
-            Calls ndarray's tobytes()
-        """
-
-        return hash(self.tobytes())
-
-    def __eq__(self, other):
-        if not isinstance(other, np_grad):
-            return False
-        return np.array_equal(self, other)
