@@ -98,7 +98,7 @@ class np_grad(ndarray):
         out = np_grad(out, (self,), 'exp')
 
         def _backward(out_grad):
-            self._grad += np.exp(self)
+            self._grad += np.exp(self) * out_grad
         
         out._backward = _backward
 
@@ -197,7 +197,7 @@ class np_grad(ndarray):
 
         def _backward(out_grad):
             self._grad += out_grad if self.shape != (1,) else np.sum(out_grad)
-            other._grad += -out_grad if other.shape != (1,) else np.sum(-out_grad)
+            other._grad -= out_grad if other.shape != (1,) else np.sum(out_grad)
 
         out._backward = _backward
 
