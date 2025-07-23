@@ -222,3 +222,28 @@ class np_grad(ndarray):
 
         out._backward = _backward
         return out
+
+    def backward(self):
+        """
+            Implements the global backword for the whole graph.
+            It does so by doing a topoligical sort and then calls ._backward
+            of each node in reverse order.
+        """
+
+        visited = set()
+        nodes = []
+
+        def topo_sort(node):
+            if id(node) not in visited:
+                visited.add(id(node))
+                for child in node._children:
+                    topo_sort(child)
+                nodes.append(node) 
+
+        topo_sort(self)
+
+        if not np.all(self._grad):
+            self._grad = np.ones_like(self)
+
+        for node in nodes[::-1]:
+            node._backward(node._grad)
