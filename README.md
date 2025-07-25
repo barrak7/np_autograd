@@ -59,3 +59,20 @@ out.backward()
 
 print(a._grad)
 ```
+
+## Extension example:
+
+```py
+import numpy as np
+from np_grad import np_grad
+
+def cos(x):
+    re = np.cos(x)                   # perform calculation
+    re = np_grad(re, (x,))           # initiat np_grad obj with input as child !Important
+
+    def _backward(out_grad):         # define backward step
+        x._grad += -np.sin(x) * out_grad
+
+    re._backward = _backward         # set result obj backward step
+    return re                        # return result
+```
