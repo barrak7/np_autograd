@@ -40,6 +40,9 @@ It will support operations with all the datatypes which numpy.ndarray supports, 
 
 # Usage:
 
+> [!IMPORTANT]
+> np_grad wasn't build with n > 1 degree derivatives in mind. It will result in unexpected behaviour.
+
 ## Example:
 ```py
 from np_grad import np_grad
