@@ -21,6 +21,11 @@ This can be done by defining the derivative of the basic algebraic operations th
 
 Unlike numerical differentiation which can suffer from roundoff errors, and symbolic differentiation which is hard to implement and is expensive, auto diff is much easier to implement and is less error prone.
 
+# Motivation
+
+Matrices are a building block of Deep Learning. Understanding how to differentiate and backpropagate through them is a fundemental requirement.
+
+Such project will prove useful in building different types of Deep Learning models from scratch.
 
 # Implementation
 
@@ -33,9 +38,24 @@ Every operation will create a new instance of np_grad which stores the operands 
 
 It will support operations with all the datatypes which numpy.ndarray supports, although backpropagating through different data types wouldn't be possible.
 
+# Usage:
 
-# Motivation
+## Example:
+```py
+from np_grad import np_grad
 
-Matrices are a building block of Deep Learning. Understanding how to differentiate and backpropagate through them is a fundemental requirement.
+a = np_grad(np.random.rand(3, 2))
+b = np_grad(np.random.rand(2, 4))
+c = np_grad(np.random.rand(1))
+d = np_grad(np.random.rand(1))
 
-Such project will prove useful in building different types of Deep Learning models from scratch.
+out = a @ b
+
+out = out / c
+
+out = out ** d
+
+out.backward()
+
+print(a._grad)
+```
