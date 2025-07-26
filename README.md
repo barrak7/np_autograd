@@ -79,3 +79,9 @@ def cos(x):
     re._backward = _backward         # set result obj backward step
     return re                        # return result
 ```
+
+# Useful Resources:
+- [What is Automatic Differentiation?](https://youtu.be/wG_nF1awSSY)
+- [Andrej Karpathy: Building Micrograd](https://youtu.be/VMj-3S1tku0)
+- [Matrix Derivatives: What's up with all the transposes?](https://youtu.be/ny-i8_9NtHA)
+- [Topological Sorting in Deep Learning](https://medium.com/@muhammadfaizan001/topological-sorting-in-deep-learning-the-backbone-of-forward-and-backward-propagation-aaf9d93640cf)
