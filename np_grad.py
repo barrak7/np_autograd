@@ -227,10 +227,15 @@ class np_grad(ndarray):
         """
         Reduce the input array by summing along the first axis `0`
         Until the length of its shape tuple is equal to len(target_shape).
+        If the target shape is (1,), then the array is reduced across all axes.
         """
+        res: ndarray
         if len(arr.shape) == len(target_shape):
-                return arr
-        res: ndarray = np.sum(arr, axis=tuple(range(0, len(arr.shape) - len(target_shape))))
+            res = arr
+        if target_shape == (1,):
+            res = np.sum(arr)
+        else:
+            res: ndarray = np.sum(arr, axis=tuple(range(0, len(arr.shape) - len(target_shape))))
         return res
 
     def backward(self):
