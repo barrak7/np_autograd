@@ -137,8 +137,8 @@ class np_grad(ndarray):
         out = np_grad(out, (self, other), '*')
 
         def _backward(out_grad):
-            self._grad += out_grad * other if self.shape != (1,) else np.sum(out_grad * other)
-            other._grad += out_grad * self if other.shape != (1,) else np.sum(out_grad * self)
+            self._grad += self.reduce_array(out_grad * other, self.shape)
+            other._grad += self.reduce_array(out_grad * self, other.shape)
 
         out._backward = _backward
 
@@ -157,8 +157,8 @@ class np_grad(ndarray):
         out = np_grad(out, (self, other), '+')
 
         def _backward(out_grad):
-            self._grad += out_grad if out_grad.shape == self.shape else self.reduce_array(out_grad, self.shape)
-            other._grad += out_grad if out_grad.shape == other.shape else other.reduce_array(out_grad, other.shape)
+            self._grad += self.reduce(out_grad, self.shape)
+            other._grad += other.reduce_array(out_grad, other.shape)
 
         out._backward = _backward
 
@@ -196,8 +196,8 @@ class np_grad(ndarray):
         out = np_grad(out, (self, other), '-')
 
         def _backward(out_grad):
-            self._grad += out_grad if self.shape != (1,) else np.sum(out_grad)
-            other._grad -= out_grad if other.shape != (1,) else np.sum(out_grad)
+            self._grad += self.reduce_array(out_grad, self.shape)
+            other._grad -= other.reduce_array(out_grad, other.shape)
 
         out._backward = _backward
 
@@ -217,8 +217,8 @@ class np_grad(ndarray):
         out = np_grad(out, (self, other), '/')
 
         def _backward(out_grad):
-            self._grad += out_grad / other if self.shape != (1,) else np.sum(out_grad / other)
-            other._grad += out_grad * (-self) / (other ** 2) if other.shape != (1,) else np.sum(out_grad * (-self) / (other ** 2))
+            self._grad += self.reduce_array(out_grad / other, self.shape)
+            other._grad += self.reduce_array(out_grad * (-self) / (other ** 2), other.shape)
 
         out._backward = _backward
         return out
