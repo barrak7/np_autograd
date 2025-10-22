@@ -157,8 +157,8 @@ class np_grad(ndarray):
         out = np_grad(out, (self, other), '+')
 
         def _backward(out_grad):
-            self._grad += out_grad if self.shape != (1,) else np.sum(out_grad)
-            other._grad += out_grad if other.shape != (1,) else np.sum(out_grad)
+            self._grad += out_grad if out_grad.shape == self.shape else self.reduce_array(out_grad, self.shape)
+            other._grad += out_grad if out_grad.shape == other.shape else other.reduce_array(out_grad, other.shape)
 
         out._backward = _backward
 
@@ -222,6 +222,15 @@ class np_grad(ndarray):
 
         out._backward = _backward
         return out
+
+    def reduce_array(self, arr: ndarray, target_shape: tuple) -> ndarray:
+        """
+        Reduce the input array by summing along the first axis `0`
+        Until the length of its shape tuple is equal to len(target_shape).
+        """
+
+        res: ndarray = np.sum(arr, axis=tuple(range(0, len(arr.shape) - len(target_shape))))
+        return res
 
     def backward(self):
         """
