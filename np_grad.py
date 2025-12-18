@@ -1,6 +1,8 @@
 from numpy import ndarray
 import numpy as np
 
+_EPS = 1e-08
+
 class np_grad(ndarray):
     """
         np_grad: the numpy array wrapper that provides reverse mode auto diff.
@@ -34,16 +36,12 @@ class np_grad(ndarray):
             _backward: Callable[[out_grad], None]
                 default: None
                 The _backward callable that performs the chain rule of the output gradient against _children.
-            _eps: float
-                default: 1-e7
-                Epsilon, a very small value to add to operations that don't work on 0.
         """
         self[:] = np.array(value, dtype=np.float32)
         self._children = _children
         self._op = _op
         self._backward = lambda g: None
         self._grad = np.zeros_like(self)
-        self._eps = 1e-7
 
     def __matmul__(self, other):
         """
@@ -75,7 +73,7 @@ class np_grad(ndarray):
                 out: ndarray
                     A new instance of np_grad with the natural log of self.
         """
-        out = np.log(self + self._eps)
+        out = np.log(self + _EPS)
 
         out = np_grad(out, (self,), 'ln')
 
@@ -118,7 +116,8 @@ class np_grad(ndarray):
 
         def _backward(out_grad):
             self._grad += out_grad * other * (self ** (other - 1))
-            other._grad += np.sum(out_grad * (self ** other) * self.log())
+            if isinstance(other, np_grad):
+                other._grad += np.sum(out_grad * (self ** other) * self.log())
 
         out._backward = _backward
 
@@ -138,7 +137,8 @@ class np_grad(ndarray):
 
         def _backward(out_grad):
             self._grad += self.reduce_array(out_grad * other, self.shape)
-            other._grad += self.reduce_array(out_grad * self, other.shape)
+            if isinstance(other, np_grad):
+                other._grad += self.reduce_array(out_grad * self, other.shape)
 
         out._backward = _backward
 
@@ -158,7 +158,8 @@ class np_grad(ndarray):
 
         def _backward(out_grad):
             self._grad += self.reduce_array(out_grad, self.shape)
-            other._grad += other.reduce_array(out_grad, other.shape)
+            if isinstance(other, np_grad):
+                other._grad += other.reduce_array(out_grad, other.shape)
 
         out._backward = _backward
 
@@ -197,7 +198,8 @@ class np_grad(ndarray):
 
         def _backward(out_grad):
             self._grad += self.reduce_array(out_grad, self.shape)
-            other._grad -= other.reduce_array(out_grad, other.shape)
+            if isinstance(other, np_grad):
+                other._grad -= other.reduce_array(out_grad, other.shape)
 
         out._backward = _backward
 
@@ -213,12 +215,13 @@ class np_grad(ndarray):
                 out: ndarray
                     The result of the division.
         """
-        out = super(np_grad, self).__truediv__(other + other._eps)
+        out = super(np_grad, self).__truediv__(other + _EPS)
         out = np_grad(out, (self, other), '/')
 
         def _backward(out_grad):
             self._grad += self.reduce_array(out_grad / other, self.shape)
-            other._grad += self.reduce_array(out_grad * (-self) / (other ** 2), other.shape)
+            if isinstance(other, np_grad):
+                other._grad += self.reduce_array(out_grad * (-self) / (other ** 2), other.shape)
 
         out._backward = _backward
         return out
