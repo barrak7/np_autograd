@@ -1,41 +1,43 @@
-from numpy import ndarray
 import numpy as np
+from numpy import ndarray
 
 _EPS = 1e-08
 
+
 class np_grad(ndarray):
     """
-        np_grad: the numpy array wrapper that provides reverse mode auto diff.
+    np_grad: the numpy array wrapper that provides reverse mode auto diff.
     """
+
     def __new__(cls, value, *args, **kwargs):
         """
-            Creates a new instance of the class.
+        Creates a new instance of the class.
 
-            Since np.ndarray doesn't have an __init__ function,
-            I had to override __new__ as a workaround to initializing
-            the parent instance with the same value.
+        Since np.ndarray doesn't have an __init__ function,
+        I had to override __new__ as a workaround to initializing
+        the parent instance with the same value.
         """
         arr = np.array(value)
-        return super(np_grad, cls).__new__(cls, arr.shape, dtype=np.float32)
-    
-    def __init__(self, value: ndarray, _children=(), _op=''):
+        return super().__new__(cls, arr.shape, dtype=np.float32)
+
+    def __init__(self, value: ndarray, _children=(), _op=""):
         """
-            Parameters
-            ----------
-            value: ndarray
-                The matrix.
-            _children: tuple[Any, Any] | tuple[]
-                default: ()
-                The operands that resulted in value.
-            _op: str
-                default: '' 
-                The operation that resulted in value.
-            _grad: ndarray.float
-                default: 0
-                The gradient of the current node.
-            _backward: Callable[[out_grad], None]
-                default: None
-                The _backward callable that performs the chain rule of the output gradient against _children.
+        Parameters
+        ----------
+        value: ndarray
+            The matrix.
+        _children: tuple[Any, Any] | tuple[]
+            default: ()
+            The operands that resulted in value.
+        _op: str
+            default: ''
+            The operation that resulted in value.
+        _grad: ndarray.float
+            default: 0
+            The gradient of the current node.
+        _backward: Callable[[out_grad], None]
+            default: None
+            The _backward callable that performs the chain rule of the output gradient against _children.
         """
         self[:] = np.array(value, dtype=np.float32)
         self._children = _children
@@ -45,37 +47,37 @@ class np_grad(ndarray):
 
     def __matmul__(self, other):
         """
-            Overrides the @ operator. Performs matrix multiplication between self and other.
+        Overrides the @ operator. Performs matrix multiplication between self and other.
 
-            Calls numpy matmul on the ndarrays. Uses the output value to create a new np_grad object.
+        Calls numpy matmul on the ndarrays. Uses the output value to create a new np_grad object.
 
-            Defines the _backward function and sets it in the newly created object.
+        Defines the _backward function and sets it in the newly created object.
 
-            Returns:
-                np_grad, the result of the operation.
+        Returns:
+            np_grad, the result of the operation.
         """
-        out = super(np_grad, self).__matmul__(other)
-        out = np_grad(out, (self, other), '@')
+        out = super().__matmul__(other)
+        out = np_grad(out, (self, other), "@")
 
         def _backward(out_grad):
             self._grad += out_grad @ other.T
             other._grad += self.T @ out_grad
-        
+
         out._backward = _backward
         return out
 
     def log(self):
         """
-            Applies the natural log to each element of the Matrix.
-            It calls numpy's log function.
+        Applies the natural log to each element of the Matrix.
+        It calls numpy's log function.
 
-            Returns:
-                out: ndarray
-                    A new instance of np_grad with the natural log of self.
+        Returns:
+            out: ndarray
+                A new instance of np_grad with the natural log of self.
         """
         out = np.log(self + _EPS)
 
-        out = np_grad(out, (self,), 'ln')
+        out = np_grad(out, (self,), "ln")
 
         def _backward(out_grad):
             self._grad += out_grad * 1 / self
@@ -85,39 +87,39 @@ class np_grad(ndarray):
 
     def exp(self):
         """
-            Applies the natural exponential function to self.
-            It calls numpy's exp function.
+        Applies the natural exponential function to self.
+        It calls numpy's exp function.
 
-            Returns:
-                out: ndarray
-                    The output matrix with the exp of self.
+        Returns:
+            out: ndarray
+                The output matrix with the exp of self.
         """
         out = np.exp(self)
-        out = np_grad(out, (self,), 'exp')
+        out = np_grad(out, (self,), "exp")
 
         def _backward(out_grad):
             self._grad += np.exp(self) * out_grad
-        
+
         out._backward = _backward
 
         return out
 
     def __pow__(self, other):
         """
-            Raises self to the power of other.
-            It calls ndarray.__pow__(other).
+        Raises self to the power of other.
+        It calls ndarray.__pow__(other).
 
-            Returns:
-                out: ndarray
-                    Self raised to the power of other.
+        Returns:
+            out: ndarray
+                Self raised to the power of other.
         """
-        out = super(np_grad, self).__pow__(other)
-        out = np_grad(out, (self, other), '**')
+        out = super().__pow__(other)
+        out = np_grad(out, (self, other), "**")
 
         def _backward(out_grad):
             self._grad += out_grad * other * (self ** (other - 1))
             if isinstance(other, np_grad):
-                other._grad += np.sum(out_grad * (self ** other) * self.log())
+                other._grad += np.sum(out_grad * (self**other) * self.log())
 
         out._backward = _backward
 
@@ -125,15 +127,15 @@ class np_grad(ndarray):
 
     def __mul__(self, other):
         """
-            Multiplies self by other.
-            It calls ndarray.__mul__.
+        Multiplies self by other.
+        It calls ndarray.__mul__.
 
-            Returns:
-                out: ndarray
-                    Result of the multiplcation.
+        Returns:
+            out: ndarray
+                Result of the multiplcation.
         """
-        out = super(np_grad, self).__mul__(other)
-        out = np_grad(out, (self, other), '*')
+        out = super().__mul__(other)
+        out = np_grad(out, (self, other), "*")
 
         def _backward(out_grad):
             self._grad += self.reduce_array(out_grad * other, self.shape)
@@ -146,15 +148,15 @@ class np_grad(ndarray):
 
     def __add__(self, other):
         """
-            Implements the addition operator.
-            Calls ndarray.__add__.
+        Implements the addition operator.
+        Calls ndarray.__add__.
 
-            Returns:
-                out: ndarray
-                    The result of the addition.
+        Returns:
+            out: ndarray
+                The result of the addition.
         """
-        out = super(np_grad, self).__add__(other)
-        out = np_grad(out, (self, other), '+')
+        out = super().__add__(other)
+        out = np_grad(out, (self, other), "+")
 
         def _backward(out_grad):
             self._grad += self.reduce_array(out_grad, self.shape)
@@ -167,15 +169,15 @@ class np_grad(ndarray):
 
     def __neg__(self):
         """
-            Negates self.
-            Calls ndarray.__neg__()
+        Negates self.
+        Calls ndarray.__neg__()
 
-            Returns:
-                out: ndarray
-                    Negated self.
+        Returns:
+            out: ndarray
+                Negated self.
         """
-        out = super(np_grad, self).__neg__()
-        out = np_grad(out, (self,), '-')
+        out = super().__neg__()
+        out = np_grad(out, (self,), "-")
 
         def _backward(out_grad):
             self._grad -= out_grad
@@ -186,15 +188,15 @@ class np_grad(ndarray):
 
     def __sub__(self, other):
         """
-            Implements subtraction.
-            Calls ndarray.__sub__.
+        Implements subtraction.
+        Calls ndarray.__sub__.
 
-            Returns:
-                out: ndarray
-                    Result of __add__ call.
+        Returns:
+            out: ndarray
+                Result of __add__ call.
         """
-        out = super(np_grad, self).__sub__(other)
-        out = np_grad(out, (self, other), '-')
+        out = super().__sub__(other)
+        out = np_grad(out, (self, other), "-")
 
         def _backward(out_grad):
             self._grad += self.reduce_array(out_grad, self.shape)
@@ -207,21 +209,23 @@ class np_grad(ndarray):
 
     def __truediv__(self, other):
         """
-            Implements division.
-            Calls ndarray.__div__.
-            Adds epsilon to other to avoid division by zero.
+        Implements division.
+        Calls ndarray.__div__.
+        Adds epsilon to other to avoid division by zero.
 
-            Returns:
-                out: ndarray
-                    The result of the division.
+        Returns:
+            out: ndarray
+                The result of the division.
         """
-        out = super(np_grad, self).__truediv__(other + _EPS)
-        out = np_grad(out, (self, other), '/')
+        out = super().__truediv__(other + _EPS)
+        out = np_grad(out, (self, other), "/")
 
         def _backward(out_grad):
             self._grad += self.reduce_array(out_grad / other, self.shape)
             if isinstance(other, np_grad):
-                other._grad += self.reduce_array(out_grad * (-self) / (other ** 2), other.shape)
+                other._grad += self.reduce_array(
+                    out_grad * (-self) / (other**2), other.shape
+                )
 
         out._backward = _backward
         return out
@@ -238,14 +242,16 @@ class np_grad(ndarray):
         if target_shape == (1,):
             res = np.sum(arr)
         else:
-            res: ndarray = np.sum(arr, axis=tuple(range(0, len(arr.shape) - len(target_shape))))
+            res = np.sum(
+                arr, axis=tuple(range(0, len(arr.shape) - len(target_shape)))
+            )
         return res
 
     def backward(self):
         """
-            Implements the global backword for the whole graph.
-            It does so by doing a topoligical sort and then calls ._backward
-            of each node in reverse order.
+        Implements the global backword for the whole graph.
+        It does so by doing a topoligical sort and then calls ._backward
+        of each node in reverse order.
         """
 
         visited = set()
@@ -256,7 +262,7 @@ class np_grad(ndarray):
                 visited.add(id(node))
                 for child in node._children:
                     topo_sort(child)
-                nodes.append(node) 
+                nodes.append(node)
 
         topo_sort(self)
 
